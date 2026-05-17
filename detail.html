@@ -1,0 +1,371 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课题详情分析</title>
+  <script src="./data.js"></script>
+  <style>
+    :root{--navy:#16365f;--blue:#2f69e1;--accent:#e86c3a;--ink:#10213c;--muted:#64748b;--panel:#fff;--line:rgba(148,163,184,.16);--shadow:0 18px 40px rgba(16,33,60,.10)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#f6f9fc,#edf3f8);color:var(--ink);height:100vh;overflow:hidden}
+    .hero{padding:28px 24px 34px;background:linear-gradient(120deg,#123055,#22487c 62%,#2f69e1);color:#fff}
+    .nav{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}.nav a{color:#fff;text-decoration:none;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.12)}
+    .hero h1{margin:0 0 10px;font-size:clamp(28px,4vw,42px);line-height:1.3;max-width:920px}.hero p{margin:0;max-width:860px;line-height:1.8;color:rgba(255,255,255,.84)}
+    .layout{display:grid;grid-template-columns:minmax(360px,.95fr) minmax(540px,1.3fr);gap:20px;padding:22px;height:calc(100vh - 186px)}
+    .card{background:var(--panel);border-radius:24px;box-shadow:var(--shadow);padding:22px;min-height:0}
+    .shell{display:flex;flex-direction:column;gap:16px;height:100%;min-height:0}
+    .title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.title-row h2{margin:0}.title-row p{margin:6px 0 0;color:var(--muted);line-height:1.7}
+    .scroll-area{overflow:auto;min-height:0;padding-right:6px}.scroll-area::-webkit-scrollbar{width:10px}.scroll-area::-webkit-scrollbar-thumb{background:rgba(100,116,139,.24);border-radius:999px}
+    .stepper{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .step{padding:14px 16px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(180deg,#fff,#f8fbff)}.step strong{display:block;font-size:15px}.step span{display:block;margin-top:6px;font-size:12px;color:var(--muted)}.step.active{border-color:rgba(47,105,225,.28);box-shadow:0 10px 24px rgba(47,105,225,.08)}.step.done{border-color:rgba(232,108,58,.28)}
+    .panel{display:none;flex-direction:column;gap:16px;min-height:0;flex:1}.panel.active{display:flex}
+    .focus{padding:16px;border-radius:18px;background:linear-gradient(180deg,#fff7f2,#fff);border:1px solid rgba(232,108,58,.18)}.focus h3,.chosen h3{margin:0 0 8px}.focus p,.chosen p{margin:0;color:var(--muted);line-height:1.7}
+    .chosen{display:none;padding:16px;border-radius:18px;background:linear-gradient(180deg,#f5faff,#fff);border:1px solid rgba(47,105,225,.14)}.chosen.active{display:block}.chosen-reviewers ul{margin:10px 0 0;padding-left:18px;color:var(--muted);line-height:1.8;font-size:13px}.item.confirmed{border-color:rgba(232,108,58,.32);background:linear-gradient(180deg,#fff9f5,#fff)}.btn.is-selected{background:linear-gradient(135deg,#64748b,#94a3b8);pointer-events:none}
+    .item{padding:16px;border-radius:16px;background:#f8fbff;border:1px solid rgba(47,105,225,.10);margin-bottom:14px}.item h3{margin:0 0 10px;font-size:16px;line-height:1.5}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.pill{font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(47,105,225,.10);color:var(--navy)}.pill.score{background:rgba(232,108,58,.14);color:#b45309}
+    .bar{height:8px;background:rgba(148,163,184,.18);border-radius:999px;overflow:hidden;margin-top:10px}.bar span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--accent))}
+    .expert{display:flex;gap:14px}.avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#123055,#2f69e1);color:#fff;font-weight:700;flex:none}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.btn,.ghost{display:inline-block;border:0;border-radius:10px;padding:8px 12px;text-decoration:none;font:inherit;cursor:pointer}.btn{background:linear-gradient(135deg,var(--accent),#f08a5d);color:#fff}.ghost{background:#eaf2ff;color:var(--navy)}.btn-outline{background:#fff;color:var(--navy);border:1px solid rgba(47,105,225,.28)}
+    .empty{font-size:13px;color:var(--muted);line-height:1.8;padding:10px 0}
+    .match-detail{margin-top:10px;display:grid;gap:8px;font-size:13px;line-height:1.75;color:var(--muted)}.match-detail p{margin:0}.match-detail strong{color:var(--ink)}
+    .section-label{margin:0 0 12px;font-size:15px;color:var(--ink)}.section-label.split{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+    .pill.policy{background:rgba(34,197,94,.12);color:#166534}
+    .policy-note{margin-top:8px;font-size:13px;line-height:1.7;color:var(--muted)}
+    .policy-meta{margin-top:4px;font-size:12px;color:var(--muted);line-height:1.6}
+    .policy-summary{margin:10px 0 0;font-size:13px;line-height:1.75;color:var(--muted)}
+    .policy-clauses{margin-top:12px;display:grid;gap:10px}
+    .policy-clause{margin:0;padding:12px 14px;border-radius:12px;background:#fff;border:1px solid rgba(34,197,94,.16);border-left:3px solid rgba(34,197,94,.55)}
+    .policy-clause cite{display:block;font-style:normal;font-weight:600;color:var(--navy);margin-bottom:6px;font-size:12px}
+    .policy-clause p{margin:0;font-size:13px;line-height:1.8;color:var(--ink)}
+    .report-modal[hidden]{display:none}.report-modal{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}.report-modal-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.45)}.report-modal-panel{position:relative;z-index:1;width:min(720px,100%);max-height:min(82vh,880px);display:flex;flex-direction:column;background:#fff;border-radius:22px;box-shadow:0 24px 56px rgba(16,33,60,.18);overflow:hidden}.report-modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}.report-modal-head h3{margin:0;font-size:18px}.report-modal-head p{margin:4px 0 0;font-size:12px;color:var(--muted)}.report-modal-close{border:0;background:#edf4ff;color:var(--navy);width:32px;height:32px;border-radius:10px;cursor:pointer;font-size:20px;line-height:1}.report-modal-body{flex:1;min-height:0;padding:0 20px}.report-modal-body textarea{width:100%;min-height:360px;height:100%;margin:16px 0;padding:14px 16px;border:1px solid rgba(148,163,184,.22);border-radius:14px;resize:vertical;font:inherit;font-size:13px;line-height:1.75;color:var(--ink);background:#f8fbff}.report-modal-body textarea:focus{outline:none;border-color:rgba(47,105,225,.45);box-shadow:0 0 0 3px rgba(47,105,225,.12)}.report-modal-foot{padding:14px 20px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+    @media (max-width:1024px){body{height:auto;overflow:auto}.layout{grid-template-columns:1fr;height:auto}.card,.shell,.panel,.scroll-area{min-height:auto}.scroll-area{overflow:visible;padding-right:0}.stepper{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="nav"><a href="./workbench.html">返回主工作台</a><span id="crumb">法学课题详情分析</span></div>
+    <h1 id="title">课题详情</h1>
+    <p id="summary"></p>
+  </header>
+  <main class="layout">
+    <section class="card shell">
+      <div class="title-row">
+        <div>
+          <h2>相似历史课题与政策依据</h2>
+          <p>基于方向与关键词匹配，展示最接近的历史立项样本及可支撑论证的相关政策。</p>
+        </div>
+      </div>
+      <div class="scroll-area">
+        <h3 class="section-label">相似历史课题</h3>
+        <div id="similarList"></div>
+        <h3 class="section-label split">相关政策</h3>
+        <div id="policyList"></div>
+      </div>
+    </section>
+    <section class="card shell">
+      <div class="stepper">
+        <div class="step active" id="stepLead">
+          <strong>步骤 1 选择项目负责人</strong>
+          <span>先确定最合适的主持人选。</span>
+        </div>
+        <div class="step" id="stepReview">
+          <strong>步骤 2 推荐评审专家</strong>
+          <span>负责人确定后再进入评审匹配。</span>
+        </div>
+      </div>
+      <section class="panel active" id="leadPanel">
+        <div class="focus">
+          <h3>负责人推荐</h3>
+          <p>先从方向匹配度、项目经验和团队适配性中确定负责人，再进入评审专家推荐。</p>
+        </div>
+        <div class="scroll-area" id="leadList"></div>
+      </section>
+      <section class="panel" id="reviewPanel">
+        <div class="chosen" id="chosenLead"></div>
+        <div class="chosen chosen-reviewers" id="chosenReviewers"></div>
+        <div class="scroll-area" id="reviewerList"></div>
+      </section>
+    </section>
+  </main>
+  <div class="report-modal" id="reportModal" hidden>
+    <div class="report-modal-backdrop" data-close-report></div>
+    <div class="report-modal-panel" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+      <div class="report-modal-head">
+        <div>
+          <h3 id="reportModalTitle">编辑导出报告</h3>
+          <p>可在此查看并修改报告正文，确认后再下载。</p>
+        </div>
+        <button type="button" class="report-modal-close" data-close-report aria-label="关闭">×</button>
+      </div>
+      <div class="report-modal-body">
+        <textarea id="reportEditor" spellcheck="false"></textarea>
+      </div>
+      <div class="report-modal-foot">
+        <button type="button" class="ghost" data-close-report>取消</button>
+        <button type="button" class="btn" id="downloadReportBtn">下载报告</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const { getTopicByTitle, findSimilarTopics, findRelatedPolicies, recommendExperts, buildExpertNetwork, inferDirectionFromTitle, buildTopicAnalysisReport } = window.ResearchPlatformData;
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function renderPolicyClauses(clauses) {
+      if (!clauses || !clauses.length) return "";
+      return `<div class="policy-clauses">${clauses.map((clause) => `
+        <blockquote class="policy-clause">
+          <cite>${escapeHtml(clause.label)}</cite>
+          <p>${escapeHtml(clause.text)}</p>
+        </blockquote>
+      `).join("")}</div>`;
+    }
+
+    function renderMatchDetail(detail) {
+      if (!detail || !detail.sections || !detail.sections.length) {
+        return '<div class="match-detail"><p><strong>综合判断：</strong>系统根据方向、关键词与历史立项记录完成匹配，建议结合专家画像进一步核验。</p></div>';
+      }
+      return `<div class="match-detail">${detail.sections.map((section) => `<p><strong>${section.title}</strong>${section.text}</p>`).join("")}</div>`;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const title = params.get("title") || "平台算法歧视的司法救济研究";
+    const leadParam = params.get("lead") || "";
+    const reviewerParam = params.get("reviewers") || "";
+    const selectedReviewerNames = reviewerParam.split(",").map((name) => name.trim()).filter(Boolean);
+    const existingTopic = getTopicByTitle(title);
+    const queryTopic = existingTopic || { title, direction: inferDirectionFromTitle(title), keywords:[inferDirectionFromTitle(title), "法学研究", "制度完善"] };
+    const similarTopics = findSimilarTopics(queryTopic, 8).filter((topic) => topic.title !== title);
+    const relatedPolicies = findRelatedPolicies(queryTopic, 8);
+    const experts = recommendExperts(queryTopic, 6);
+
+    const stepLead = document.getElementById("stepLead");
+    const stepReview = document.getElementById("stepReview");
+    const leadPanel = document.getElementById("leadPanel");
+    const reviewPanel = document.getElementById("reviewPanel");
+    const chosenLead = document.getElementById("chosenLead");
+    const chosenReviewers = document.getElementById("chosenReviewers");
+
+    function buildDetailUrl(nextLead, nextReviewers) {
+      const query = new URLSearchParams();
+      query.set("title", title);
+      if (nextLead) query.set("lead", nextLead);
+      if (nextReviewers && nextReviewers.length) query.set("reviewers", nextReviewers.join(","));
+      return `./detail.html?${query.toString()}`;
+    }
+
+    document.getElementById("title").textContent = title;
+    document.getElementById("crumb").textContent = queryTopic.direction + " / 课题详情";
+    document.getElementById("summary").textContent = `系统已根据“${queryTopic.direction}”方向完成相似历史课题、相关政策、负责人与评审专家的顺序匹配，可用于立项论证与团队配置演示。`;
+
+    document.getElementById("similarList").innerHTML = similarTopics.map((topic) => `
+      <article class="item">
+        <h3>${topic.title}</h3>
+        <div class="meta">
+          <span class="pill">${topic.year} 年</span>
+          <span class="pill">${topic.type}</span>
+          <span class="pill">${topic.direction}</span>
+          <span class="pill score">相似度 ${Math.round(topic.similarity * 100)}%</span>
+        </div>
+        <div>关键词：${topic.keywords.slice(0,4).join(" / ")}</div>
+        <div class="bar"><span style="width:${Math.round(topic.similarity * 100)}%"></span></div>
+      </article>
+    `).join("") || '<div class="empty">暂无高相似历史课题。</div>';
+
+    document.getElementById("policyList").innerHTML = relatedPolicies.map((policy) => `
+      <article class="item">
+        <h3>${escapeHtml(policy.name)}</h3>
+        <div class="meta">
+          <span class="pill policy">政策文件</span>
+          <span class="pill">${escapeHtml(policy.reason)}</span>
+          <span class="pill">触发词：${escapeHtml(policy.keyword)}</span>
+        </div>
+        ${policy.issuer || policy.effectiveDate ? `<p class="policy-meta">${[policy.issuer, policy.effectiveDate].filter(Boolean).map(escapeHtml).join(" · ")}</p>` : ""}
+        ${policy.summary ? `<p class="policy-summary">${escapeHtml(policy.summary)}</p>` : ""}
+        ${renderPolicyClauses(policy.clauses)}
+        <p class="policy-note">以上条文与当前课题“${escapeHtml(policy.keyword)}”议题直接相关，可用于立项背景、问题界定或制度设计论证。</p>
+      </article>
+    `).join("") || '<div class="empty">暂无匹配政策，请补充课题关键词后重新匹配。</div>';
+
+    document.getElementById("leadList").innerHTML = experts.slice(0,4).map((expert) => `
+      <article class="item expert">
+        <div class="avatar">${expert.name.slice(0,1)}</div>
+        <div>
+          <h3>${expert.name}</h3>
+          <div>${expert.institution} · ${expert.title}</div>
+          <div class="meta">
+            ${expert.directions.map((direction) => `<span class="pill">${direction}</span>`).join("")}
+            <span class="pill score">匹配度 ${Math.round(expert.score * 100)}%</span>
+          </div>
+          ${renderMatchDetail(expert.matchDetail)}
+          <div class="bar"><span style="width:${Math.round(expert.score * 100)}%"></span></div>
+          <div class="actions">
+            <a class="btn" href="${buildDetailUrl(expert.name, selectedReviewerNames)}">确定为负责人</a>
+            <a class="ghost" href="./expert.html?name=${encodeURIComponent(expert.name)}">查看专家画像</a>
+          </div>
+        </div>
+      </article>
+    `).join("") || '<div class="empty">暂无负责人推荐。</div>';
+
+    const reportModal = document.getElementById("reportModal");
+    const reportEditor = document.getElementById("reportEditor");
+    const downloadReportBtn = document.getElementById("downloadReportBtn");
+    let reportDownloadName = "课题-立项分析报告.txt";
+
+    function buildDetailReportText(lead, selectedReviewers) {
+      const recommendedReviewers = experts.filter((expert) => !lead || expert.name !== lead.name);
+      let approvalPolicyWeight = 45;
+      try {
+        const saved = localStorage.getItem("approvalPolicyWeight");
+        if (saved != null && !Number.isNaN(Number(saved))) {
+          approvalPolicyWeight = Math.min(100, Math.max(0, Math.round(Number(saved))));
+        }
+      } catch (error) {
+        approvalPolicyWeight = 45;
+      }
+      return buildTopicAnalysisReport(queryTopic, {
+        lead: lead,
+        selectedReviewers: selectedReviewers,
+        recommendedReviewers: recommendedReviewers,
+        approvalPolicyWeight: approvalPolicyWeight
+      });
+    }
+
+    function downloadDetailReport(text) {
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = reportDownloadName;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function closeReportEditor() {
+      reportModal.hidden = true;
+      document.body.style.overflow = "";
+    }
+
+    function openReportEditor(lead, selectedReviewers) {
+      const safeName = title.replace(/[\\/:*?"<>|]/g, "_").slice(0, 40);
+      reportDownloadName = `${safeName || "课题"}-立项分析报告.txt`;
+      reportEditor.value = buildDetailReportText(lead, selectedReviewers);
+      reportModal.hidden = false;
+      document.body.style.overflow = "hidden";
+      reportEditor.focus();
+    }
+
+    reportModal.querySelectorAll("[data-close-report]").forEach((el) => {
+      el.addEventListener("click", closeReportEditor);
+    });
+    downloadReportBtn.addEventListener("click", () => {
+      downloadDetailReport(reportEditor.value);
+      closeReportEditor();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !reportModal.hidden) closeReportEditor();
+    });
+
+    function relationshipScore(leadName, reviewerName) {
+      const network = buildExpertNetwork(leadName);
+      const link = network.links.find((item) => {
+        return (item.source === leadName && item.target === reviewerName) || (item.source === reviewerName && item.target === leadName);
+      });
+      const times = link ? link.value : 0;
+      const closeness = times >= 5 ? "高" : times >= 3 ? "中" : times >= 1 ? "低" : "弱";
+      const percent = Math.min(100, times * 18 + (times ? 22 : 8));
+      return { times, closeness, percent };
+    }
+
+    function syncPanels() {
+      const lead = experts.find((expert) => expert.name === leadParam);
+
+      if (!leadParam || !lead) {
+        stepLead.className = "step active";
+        stepReview.className = "step";
+        leadPanel.className = "panel active";
+        reviewPanel.className = "panel";
+        document.getElementById("reviewerList").innerHTML = '<div class="empty">请先在上一步确定项目负责人。</div>';
+        chosenLead.className = "chosen";
+        chosenLead.innerHTML = "";
+        if (chosenReviewers) {
+          chosenReviewers.className = "chosen chosen-reviewers";
+          chosenReviewers.innerHTML = "";
+        }
+        return;
+      }
+      const reviewers = experts.filter((expert) => expert.name !== leadParam);
+      const selectedReviewers = selectedReviewerNames.map((name) => reviewers.find((expert) => expert.name === name)).filter(Boolean);
+      stepLead.className = "step done";
+      stepReview.className = "step active";
+      leadPanel.className = "panel";
+      reviewPanel.className = "panel active";
+      chosenLead.className = "chosen active";
+      chosenLead.innerHTML = `
+        <h3>已选负责人：${lead.name}</h3>
+        <p>${lead.institution} · ${lead.title}。评审专家推荐已自动避开负责人本人，并优先补足方向覆盖与评议独立性。</p>
+        <div class="actions">
+          <a class="ghost" href="${buildDetailUrl("", [])}">重新选择负责人</a>
+          <a class="btn" href="./expert.html?name=${encodeURIComponent(lead.name)}">查看负责人画像</a>
+          <button type="button" class="btn-outline" data-export-report>导出报告</button>
+        </div>
+      `;
+      const exportBtn = chosenLead.querySelector("[data-export-report]");
+      if (exportBtn) {
+        exportBtn.addEventListener("click", () => openReportEditor(lead, selectedReviewers));
+      }
+
+      if (chosenReviewers) {
+        if (selectedReviewers.length) {
+          chosenReviewers.className = "chosen chosen-reviewers active";
+          chosenReviewers.innerHTML = `
+            <h3>已确定评审专家（${selectedReviewers.length} 人）</h3>
+            <p>以下专家已纳入评审组配置，可继续从推荐列表中增补或调整。</p>
+            <ul>${selectedReviewers.map((expert) => `<li>${expert.name} · ${expert.institution}</li>`).join("")}</ul>
+            <div class="actions">
+              <a class="ghost" href="${buildDetailUrl(leadParam, [])}">清空评审专家</a>
+            </div>
+          `;
+        } else {
+          chosenReviewers.className = "chosen chosen-reviewers";
+          chosenReviewers.innerHTML = "";
+        }
+      }
+
+      document.getElementById("reviewerList").innerHTML = reviewers.map((expert) => {
+        const relation = relationshipScore(lead.name, expert.name);
+        const isSelected = selectedReviewerNames.includes(expert.name);
+        const nextReviewers = isSelected
+          ? selectedReviewerNames.filter((name) => name !== expert.name)
+          : selectedReviewerNames.concat([expert.name]);
+        return `
+        <article class="item expert${isSelected ? " confirmed" : ""}">
+          <div class="avatar">${expert.name.slice(0,1)}</div>
+          <div>
+            <h3>${expert.name}</h3>
+            <div>${expert.institution}</div>
+            <div class="meta">
+              ${expert.directions.map((direction) => `<span class="pill">${direction}</span>`).join("")}
+              <span class="pill score">关系亲密度 ${relation.closeness}</span>
+              <span class="pill">共同讲座 ${relation.times} 次</span>
+              ${isSelected ? '<span class="pill score">已确定</span>' : ""}
+            </div>
+            <div>评审建议：重点关注其在${expert.directions[0] || "法学交叉研究"}方向的规范研究与实践评估经验，与负责人形成互补。</div>
+            <div>关系说明：该亲密度根据两人在学术合作网络中的共同讲座次数计算，用于辅助判断合作熟悉程度。</div>
+            <div class="bar"><span style="width:${relation.percent}%"></span></div>
+            <div class="actions">
+              ${isSelected
+                ? `<a class="ghost" href="${buildDetailUrl(leadParam, nextReviewers)}">取消确定</a>`
+                : `<a class="btn" href="${buildDetailUrl(leadParam, nextReviewers)}">确定为评审专家</a>`}
+              <a class="ghost" href="./expert.html?name=${encodeURIComponent(expert.name)}">查看专家画像</a>
+            </div>
+          </div>
+        </article>
+      `;}).join("") || '<div class="empty">暂无评审专家推荐。</div>';
+    }
+
+    syncPanels();
+  </script>
+</body>
+</html>
